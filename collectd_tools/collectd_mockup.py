@@ -41,3 +41,9 @@ def warning(arg):
 
 def register_read(read_callback):
     read_callback()
+
+
+def register_config(config_callback):
+    config_callback(Config(key='HOST', values=('10.20.16.27',)))
+    config_callback(Config(key='PORT', values=('11211',)))
+    config_callback(Config(key='INSTANCE', values=('default_INSTANCE',)))

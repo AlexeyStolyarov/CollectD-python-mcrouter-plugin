@@ -1,0 +1,15 @@
+<LoadPlugin python>
+    Globals true
+</LoadPlugin>
+
+
+<Plugin python>
+    ModulePath "/etc/collectd/plugins.d/python"
+    Import "mcrouter"
+    <Module mcrouter>
+        HOST "127.0.0.1"
+        PORT "11211"
+        INSTANCE "default_INSTANCE"
+    </Module>
+    Interactive false
+</Plugin>
