@@ -19,10 +19,13 @@ config = {
 }
 
 RETURNED_VARS = {
-    'cmd_set': 'gauge',
-    'cmd_get': 'gauge',
-    'cmd_delete': 'gauge',
-    'duration_us': 'gauge'
+    'cmd_set_count': 'derive',
+    'cmd_get_count': 'derive',
+    'cmd_delete_count': 'derive',
+    'duration_us': 'gauge',
+    'proxy_reqs_processing': 'gauge',
+    'proxy_reqs_waiting': 'gauge',
+    'asynclog_requests': 'derive'
     #    'proxy_reqs_processing': 'derive'
 }
 
