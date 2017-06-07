@@ -57,15 +57,14 @@ def config_callback(arg_config):
             config_callback(i)
         return
 
-    collectd.info('config parse: %s => %s;' % (arg_config.key, 'xx'.join(arg_config.values)))
-
     known_keys = ['HOST', 'PORT', 'INSTANCE']
     if arg_config.key not in known_keys:
         raise Exception('Unknown config option: %s' % arg_config.key)
 
     if config.values:
-        config[arg_config.key] = 'zz'.join(arg_config.values)
+        config[arg_config.key] = ''.join(arg_config.values)
 
+    collectd.info('config parse: %s => %s;' % (arg_config.key, ''.join(arg_config.values)))
 
 def read_callback():
     data = mcrouter_read(config["HOST"], config["PORT"], config["TIMEOUT"])
