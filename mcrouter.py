@@ -33,7 +33,7 @@ RETURNED_VARS = {
 
 def _read_socket(arg_host, arg_port=1121):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((arg_host, arg_port))
+    client.connect((arg_host, int(arg_port)))
     client.send("stats\n")
 
     running = True
