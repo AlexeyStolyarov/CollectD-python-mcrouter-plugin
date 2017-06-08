@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import re
-import telnetlib
+import select
+import socket
 
 try:
     import collectd
@@ -14,7 +15,7 @@ config = {
     'INSTANCE': 'default',
     'HOST': '127.0.0.1',
     'PORT': 11211,
-    'TIMEOUT': 1,
+    'TIMEOUT': 200,
     'PLUGIN_NAME': 'mcrouter'
 }
 
@@ -30,18 +31,34 @@ RETURNED_VARS = {
 }
 
 
+def _read_socket(arg_host, arg_port=1121):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((arg_host, arg_port))
+    client.send("stats\n")
+
+    running = True
+    buffer = ""
+
+    while (running):
+        r, w, e = select.select([client, ], [], [], config["TIMEOUT"])
+        if not (r or w or e):
+            raise TimeoutException()
+        for s in r:
+            if (s is client):
+                buffer = buffer + client.recv(16384)
+                running = (len(buffer) == 0)
+
+    client.close()
+    data = buffer.decode('utf-8').split('\r\n')
+    return data
+
 def mcrouter_read(arg_host, arg_port=1121, arg_timeout=1):
-    tn = telnetlib.Telnet(arg_host, arg_port, arg_timeout)
-    tn.read_until("'^]'.", 5)
-
-    tn.write("stats" + "\n")
-    data_tmp = tn.read_until("END", arg_timeout)
-
+    data_tmp = _read_socket(arg_host, arg_port)
     #
     # splitting, primary filtering and convert to dictonary
     #
     data = {}
-    for i in data_tmp.splitlines():
+    for i in data_tmp:
         for line in RETURNED_VARS.keys():
             # if RETURNED_VARS.key matches something like "STAT cmd_delete_count 24972" /.*\scmd_delete_count\s.*/
             if re.match(".*\s%s\s.*" % (line,), i):
@@ -65,12 +82,13 @@ def config_callback(arg_config):
         raise Exception('Unknown config option: %s' % arg_config.key)
 
     if config.values:
-        config[arg_config.key] = ''.join(arg_config.values)
+        config[arg_config.key] = arg_config.values[0]  # arg_config.values is tuple
 
-    collectd.info('config parse: %s => %s;' % (arg_config.key, ''.join(arg_config.values)))
+    collectd.info('config parse: %s => %s;' % (arg_config.key, arg_config.values[0]))
 
 def read_callback():
     data = mcrouter_read(config["HOST"], config["PORT"], config["TIMEOUT"])
+
     for x in data:
         metric = collectd.Values()
         metric.plugin = config["PLUGIN_NAME"]
